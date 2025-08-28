@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Attraction Resort — アトラクション一覧</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            background: #f8f8f8;
+            color: #222;
+        }
+
+        header {
+            background: #fff;
+            padding: 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .ticket-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .ticket-button {
+            background: #fff;
+            color: #667eea;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ticket-button:hover {
+            transform: translateY(-2px);
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .attractions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .attraction {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transform: translateY(40px);
+            opacity: 0;
+            transition: all 0.8s ease-out;
+            cursor: pointer;
+        }
+
+        .attraction:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .attraction.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .attraction.show:hover {
+            transform: translateY(-5px);
+        }
+
+        .attraction img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .meta {
+            padding: 16px;
+        }
+
+        .meta h3 {
+            margin: 0 0 8px 0;
+            font-size: 20px;
+        }
+
+        .meta p {
+            margin: 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #666;
+            margin-top: 40px;
+        }
+
+        /* モーダルのスタイル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 32px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 16px;
+            color: #999;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal h3 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+        }
+
+        .price-info {
+            background: #f5f5f5;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        .ticket-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 16px 0;
+        }
+
+        .ticket-row label {
+            font-weight: bold;
+        }
+
+        .counter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .counter button {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ddd;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .counter button:hover {
+            background: #f0f0f0;
+        }
+
+        .counter input {
+            width: 50px;
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .total-section {
+            margin: 20px 0;
+            padding: 16px;
+            background: #e8f4f8;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .total-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+
+        .purchase-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .purchase-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .purchase-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .auth-code {
+            display: inline-block;
+            background: #fff;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 12px 20px;
+            margin: 8px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Attraction Resort</h1>
+    </header>
+
+    <div class="ticket-section">
+        <h2>入園チケット</h2>
+        <p>大人: 300円 / 子供: 100円</p>
+        <button class="ticket-button" onclick="openTicketModal()">チケット購入</button>
+    </div>
+
+    <main>
+        <h2>アトラクション一覧</h2>
+        <div class="attractions-grid">
+            <article class="attraction" onclick="openAttractionModal('ホーンテッドマンション')">
+                <img src="IMG_4084.JPG" alt="ホーンテッドマンション">
+                <div class="meta">
+                    <h3>ホーンテッドマンション</h3>
+                    <p>不気味な洋館を探索する人気のお化け屋敷。幻想的な仕掛けが満載。</p>
+                </div>
+            </article>
+
+            <article class="attraction" onclick="openAttractionModal('ホーンテッドコースター')">
+                <img src="IMG_4085.JPG" alt="ホーンテッドコースター">
+                <div class="meta">
+                    <h3>ホーンテッドコースター</h3>
+                    <p>闇を駆け抜ける絶叫コースター。ホラー演出とスピード感が魅力。</p>
+                </div>
+            </article>
+
+            <article class="attraction" onclick="openAttractionModal('スーパーコースター')">
+                <img src="IMG_4086.JPG" alt="スーパーコースター">
+                <div class="meta">
+                    <h3>スーパーコースター</h3>
+                    <p>迫力満点のループと加速が特徴の王道コースター。スリル満点！</p>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <footer>
+        © <span id="now-year"></span> Attraction Resort
+    </footer>
+
+    <!-- 入園チケット購入モーダル -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('ticketModal')">&times;</span>
+            <h3>入園チケット購入</h3>
+
+            <div class="price-info">
+                <div>大人: 300円</div>
+                <div>子供: 100円</div>
+            </div>
+
+            <div class="ticket-row">
+                <label>大人</label>
+                <div class="counter">
+                    <button onclick="changeCount('adult-ticket', -1)">-</button>
+                    <input type="number" id="adult-ticket" value="0" min="0" readonly>
+                    <button onclick="changeCount('adult-ticket', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="ticket-row">
+                <label>子供</label>
+                <div class="counter">
+                    <button onclick="changeCount('child-ticket', -1)">-</button>
+                    <input type="number" id="child-ticket" value="0" min="0" readonly>
+                    <button onclick="changeCount('child-ticket', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="total-section">
+                <div>合計金額</div>
+                <div class="total-price" id="ticket-total">0円</div>
+            </div>
+
+            <button class="purchase-btn" id="ticket-purchase-btn" onclick="purchaseTickets()" disabled>購入する</button>
+
+            <div class="result-section" id="ticket-result" style="display: none;">
+                <h4>購入完了！認証コード</h4>
+                <div id="ticket-codes"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- アトラクション予約モーダル -->
+    <div id="attractionModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('attractionModal')">&times;</span>
+            <h3 id="attraction-title">アトラクション予約</h3>
+
+            <div class="price-info">
+                <div>大人: 400円</div>
+                <div>子供: 100円</div>
+            </div>
+
+            <div class="ticket-row">
+                <label>大人</label>
+                <div class="counter">
+                    <button onclick="changeCount('adult-attraction', -1)">-</button>
+                    <input type="number" id="adult-attraction" value="0" min="0" readonly>
+                    <button onclick="changeCount('adult-attraction', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="ticket-row">
+                <label>子供</label>
+                <div class="counter">
+                    <button onclick="changeCount('child-attraction', -1)">-</button>
+                    <input type="number" id="child-attraction" value="0" min="0" readonly>
+                    <button onclick="changeCount('child-attraction', 1)">+</button>
+                </div>
+            </div>
+
+            <div class="total-section">
+                <div>合計金額</div>
+                <div class="total-price" id="attraction-total">0円</div>
+            </div>
+
+            <button class="purchase-btn" id="attraction-purchase-btn" onclick="purchaseAttraction()"
+                disabled>予約する</button>
+
+            <div class="result-section" id="attraction-result" style="display: none;">
+                <h4>予約完了！認証コード</h4>
+                <div id="attraction-codes"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 年を自動表示
+        document.getElementById("now-year").textContent = new Date().getFullYear();
+
+        // スクロール時アニメーション
+        const items = document.querySelectorAll(".attraction");
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("show");
+                }
+            });
+        }, { threshold: 0.2 });
+
+        items.forEach(item => observer.observe(item));
+
+        // モーダル関連の関数
+        function openTicketModal() {
+            document.getElementById('ticketModal').style.display = 'block';
+            resetTicketForm();
+        }
+
+        function openAttractionModal(attractionName) {
+            document.getElementById('attractionModal').style.display = 'block';
+            document.getElementById('attraction-title').textContent = attractionName + ' 予約';
+            resetAttractionForm();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // カウンター変更
+        function changeCount(inputId, delta) {
+            const input = document.getElementById(inputId);
+            const newValue = Math.max(0, parseInt(input.value) + delta);
+            input.value = newValue;
+
+            if (inputId.includes('ticket')) {
+                updateTicketTotal();
+            } else {
+                updateAttractionTotal();
+            }
+        }
+
+        // 入園チケット合計計算
+        function updateTicketTotal() {
+            const adultCount = parseInt(document.getElementById('adult-ticket').value);
+            const childCount = parseInt(document.getElementById('child-ticket').value);
+            const total = adultCount * 300 + childCount * 100;
+
+            document.getElementById('ticket-total').textContent = total + '円';
+
+            const purchaseBtn = document.getElementById('ticket-purchase-btn');
+            purchaseBtn.disabled = total === 0;
+        }
+
+        // アトラクション合計計算
+        function updateAttractionTotal() {
+            const adultCount = parseInt(document.getElementById('adult-attraction').value);
+            const childCount = parseInt(document.getElementById('child-attraction').value);
+            const total = adultCount * 400 + childCount * 100;
+
+            document.getElementById('attraction-total').textContent = total + '円';
+
+            const purchaseBtn = document.getElementById('attraction-purchase-btn');
+            purchaseBtn.disabled = total === 0;
+        }
+
+        // ランダムな認証コード生成
+        function generateAuthCode() {
+            return Math.floor(Math.random() * 900000) + 100000;
+        }
+
+        // 入園チケット購入
+        function purchaseTickets() {
+            const adultCount = parseInt(document.getElementById('adult-ticket').value);
+            const childCount = parseInt(document.getElementById('child-ticket').value);
+            const totalPeople = adultCount + childCount;
+
+            const codesContainer = document.getElementById('ticket-codes');
+            codesContainer.innerHTML = '';
+
+            for (let i = 0; i < totalPeople; i++) {
+                const code = generateAuthCode();
+                const codeElement = document.createElement('div');
+                codeElement.className = 'auth-code';
+                codeElement.textContent = code;
+                codesContainer.appendChild(codeElement);
+            }
+
+            document.getElementById('ticket-result').style.display = 'block';
+            document.getElementById('ticket-purchase-btn').style.display = 'none';
+        }
+
+        // アトラクション予約
+        function purchaseAttraction() {
+            const adultCount = parseInt(document.getElementById('adult-attraction').value);
+            const childCount = parseInt(document.getElementById('child-attraction').value);
+            const totalPeople = adultCount + childCount;
+
+            const codesContainer = document.getElementById('attraction-codes');
+            codesContainer.innerHTML = '';
+
+            for (let i = 0; i < totalPeople; i++) {
+                const code = generateAuthCode();
+                const codeElement = document.createElement('div');
+                codeElement.className = 'auth-code';
+                codeElement.textContent = code;
+                codesContainer.appendChild(codeElement);
+            }
+
+            document.getElementById('attraction-result').style.display = 'block';
+            document.getElementById('attraction-purchase-btn').style.display = 'none';
+        }
+
+        // フォームリセット
+        function resetTicketForm() {
+            document.getElementById('adult-ticket').value = 0;
+            document.getElementById('child-ticket').value = 0;
+            updateTicketTotal();
+            document.getElementById('ticket-result').style.display = 'none';
+            document.getElementById('ticket-purchase-btn').style.display = 'block';
+        }
+
+        function resetAttractionForm() {
+            document.getElementById('adult-attraction').value = 0;
+            document.getElementById('child-attraction').value = 0;
+            updateAttractionTotal();
+            document.getElementById('attraction-result').style.display = 'none';
+            document.getElementById('attraction-purchase-btn').style.display = 'block';
+        }
+
+        // モーダル外クリックで閉じる
+        window.onclick = function (event) {
+            const ticketModal = document.getElementById('ticketModal');
+            const attractionModal = document.getElementById('attractionModal');
+
+            if (event.target === ticketModal) {
+                closeModal('ticketModal');
+            }
+            if (event.target === attractionModal) {
+                closeModal('attractionModal');
+            }
+        }
+    </script>
+</body>
+
+</html>
