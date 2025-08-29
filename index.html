@@ -276,75 +276,80 @@
             justify-content: center;
             align-items: center;
             height: 200px;
-            perspective: 800px;
-            background: linear-gradient(to bottom, #87ceeb 0%, #98fb98 100%);
+            perspective: 600px;
+            background: #87ceeb;
         }
 
         .cube {
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
             transform-style: preserve-3d;
-            animation: rotateCube 6s linear infinite;
+            -webkit-transform-style: preserve-3d;
+            animation: rotateCube 8s linear infinite;
             margin: auto;
         }
 
         .cube .face {
             position: absolute;
-            width: 120px;
-            height: 120px;
-            background-image: url('./kusa.png');
-            background-size: 120px 120px;
-            background-repeat: no-repeat;
+            width: 150px;
+            height: 150px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            /* テクスチャ画像を各面に貼る */
+            background-image: url('kusa.png');
+            background-size: cover;
             background-position: center;
-            backface-visibility: visible;
-            border: 1px solid #2d5a2d;
-            image-rendering: pixelated;
-            image-rendering: -moz-crisp-edges;
-            image-rendering: crisp-edges;
-        }
-
-        /* kusa.pngが読み込めない場合のフォールバック - 緑の単色 */
-        .cube .face::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #4CAF50;
-            z-index: -1;
+            background-repeat: no-repeat;
+            /* 面と面の間の境界線（白っぽい隙間）を減らすための調整 */
+            /* 枠線は外して、継ぎ目が目立たないようにする */
+            border: none;
+            box-shadow: none;
         }
 
         .cube .front {
-            transform: rotateY(0deg) translateZ(60px);
+            transform: rotateY(0deg) translateZ(75px);
         }
 
         .cube .back {
-            transform: rotateY(180deg) translateZ(60px);
+            transform: rotateY(180deg) translateZ(75px);
         }
 
         .cube .right {
-            transform: rotateY(90deg) translateZ(60px);
+            transform: rotateY(90deg) translateZ(75px);
         }
 
         .cube .left {
-            transform: rotateY(-90deg) translateZ(60px);
+            transform: rotateY(-90deg) translateZ(75px);
         }
 
         .cube .top {
-            transform: rotateX(90deg) translateZ(60px);
+            transform: rotateX(90deg) translateZ(75px);
+            /* top/bottom の向きを微調整したい場合はここに transform を追加 */
         }
 
         .cube .bottom {
-            transform: rotateX(-90deg) translateZ(60px);
+            transform: rotateX(-90deg) translateZ(75px);
         }
 
         @keyframes rotateCube {
             0% {
-                transform: rotateY(0deg) rotateX(0deg);
+                transform: rotateY(0deg);
             }
+
+            25% {
+                transform: rotateY(90deg);
+            }
+
+            50% {
+                transform: rotateY(180deg);
+            }
+
+            75% {
+                transform: rotateY(270deg);
+            }
+
             100% {
-                transform: rotateY(360deg) rotateX(0deg);
+                transform: rotateY(360deg);
             }
         }
     </style>
