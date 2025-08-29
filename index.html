@@ -292,9 +292,9 @@
             position: absolute;
             width: 150px;
             height: 150px;
-            background-image: url('kusa.png');
-            background-size: cover;
+            background-color: #4CAF50;
             backface-visibility: hidden;
+            border: 2px solid #2E7D32;
         }
 
         .cube .front {
@@ -433,8 +433,89 @@
         © <span id="now-year"></span> Attraction Resort
     </footer>
 
-    <!-- モーダル類は前回と同じ（省略せずに挿入） -->
-    <!-- ...ticketModalとattractionModalのHTMLここに入る... -->
+    <!-- 入園チケット購入モーダル -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('ticketModal')">&times;</span>
+            <h3>入園チケット購入</h3>
+            <div class="price-info">
+                <p><strong>料金：</strong>大人 300円 / 子供 100円</p>
+            </div>
+            
+            <div class="ticket-row">
+                <label>大人チケット (300円):</label>
+                <div class="counter">
+                    <button onclick="changeCount('adult-ticket', -1)">-</button>
+                    <input type="number" id="adult-ticket" value="0" min="0" onchange="updateTotal()">
+                    <button onclick="changeCount('adult-ticket', 1)">+</button>
+                </div>
+            </div>
+            
+            <div class="ticket-row">
+                <label>子供チケット (100円):</label>
+                <div class="counter">
+                    <button onclick="changeCount('child-ticket', -1)">-</button>
+                    <input type="number" id="child-ticket" value="0" min="0" onchange="updateTotal()">
+                    <button onclick="changeCount('child-ticket', 1)">+</button>
+                </div>
+            </div>
+            
+            <div class="total-section">
+                <div class="total-price" id="total-price">合計: 0円</div>
+            </div>
+            
+            <button class="purchase-btn" onclick="purchaseTickets()" id="purchase-ticket-btn" disabled>購入する</button>
+            
+            <div id="ticket-result" class="result-section" style="display: none;">
+                <h4>購入完了！</h4>
+                <p>認証コード:</p>
+                <div id="ticket-codes"></div>
+                <button onclick="resetForm('ticket')" style="margin-top: 16px; padding: 8px 16px;">新規購入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- アトラクション購入モーダル -->
+    <div id="attractionModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('attractionModal')">&times;</span>
+            <h3 id="attraction-title">アトラクション購入</h3>
+            <div class="price-info">
+                <p><strong>料金：</strong>大人 300円 / 子供 100円</p>
+            </div>
+            
+            <div class="ticket-row">
+                <label>大人チケット (300円):</label>
+                <div class="counter">
+                    <button onclick="changeCount('attraction-adult', -1)">-</button>
+                    <input type="number" id="attraction-adult" value="0" min="0" onchange="updateAttractionTotal()">
+                    <button onclick="changeCount('attraction-adult', 1)">+</button>
+                </div>
+            </div>
+            
+            <div class="ticket-row">
+                <label>子供チケット (100円):</label>
+                <div class="counter">
+                    <button onclick="changeCount('attraction-child', -1)">-</button>
+                    <input type="number" id="attraction-child" value="0" min="0" onchange="updateAttractionTotal()">
+                    <button onclick="changeCount('attraction-child', 1)">+</button>
+                </div>
+            </div>
+            
+            <div class="total-section">
+                <div class="total-price" id="attraction-total-price">合計: 0円</div>
+            </div>
+            
+            <button class="purchase-btn" onclick="purchaseAttraction()" id="purchase-attraction-btn" disabled>購入する</button>
+            
+            <div id="attraction-result" class="result-section" style="display: none;">
+                <h4>購入完了！</h4>
+                <p>認証コード:</p>
+                <div id="attraction-codes"></div>
+                <button onclick="resetForm('attraction')" style="margin-top: 16px; padding: 8px 16px;">新規購入</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // 年表示
@@ -449,8 +530,138 @@
         }, { threshold: 0.2 });
         items.forEach(item => observer.observe(item));
 
-        // モーダルなどのJSは前回コードと同じ
-        // openTicketModal, openAttractionModal, closeModal, changeCount, updateTotal, purchaseTickets, purchaseAttraction, resetForm など
+        // モーダル関連の関数
+        function openTicketModal() {
+            document.getElementById('ticketModal').style.display = 'block';
+            resetForm('ticket');
+        }
+
+        function openAttractionModal(attractionName) {
+            document.getElementById('attractionModal').style.display = 'block';
+            document.getElementById('attraction-title').textContent = attractionName + ' チケット購入';
+            resetForm('attraction');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function changeCount(inputId, delta) {
+            const input = document.getElementById(inputId);
+            const newValue = Math.max(0, parseInt(input.value) + delta);
+            input.value = newValue;
+            
+            if (inputId.includes('attraction')) {
+                updateAttractionTotal();
+            } else {
+                updateTotal();
+            }
+        }
+
+        function updateTotal() {
+            const adultCount = parseInt(document.getElementById('adult-ticket').value) || 0;
+            const childCount = parseInt(document.getElementById('child-ticket').value) || 0;
+            const total = adultCount * 300 + childCount * 100;
+            
+            document.getElementById('total-price').textContent = `合計: ${total}円`;
+            document.getElementById('purchase-ticket-btn').disabled = total === 0;
+        }
+
+        function updateAttractionTotal() {
+            const adultCount = parseInt(document.getElementById('attraction-adult').value) || 0;
+            const childCount = parseInt(document.getElementById('attraction-child').value) || 0;
+            const total = adultCount * 300 + childCount * 100;
+            
+            document.getElementById('attraction-total-price').textContent = `合計: ${total}円`;
+            document.getElementById('purchase-attraction-btn').disabled = total === 0;
+        }
+
+        function generateAuthCode() {
+            return Math.random().toString(36).substr(2, 8).toUpperCase();
+        }
+
+        function purchaseTickets() {
+            const adultCount = parseInt(document.getElementById('adult-ticket').value) || 0;
+            const childCount = parseInt(document.getElementById('child-ticket').value) || 0;
+            
+            if (adultCount === 0 && childCount === 0) return;
+            
+            const codesDiv = document.getElementById('ticket-codes');
+            codesDiv.innerHTML = '';
+            
+            for (let i = 0; i < adultCount; i++) {
+                const code = document.createElement('div');
+                code.className = 'auth-code';
+                code.textContent = generateAuthCode();
+                codesDiv.appendChild(code);
+            }
+            
+            for (let i = 0; i < childCount; i++) {
+                const code = document.createElement('div');
+                code.className = 'auth-code';
+                code.textContent = generateAuthCode();
+                codesDiv.appendChild(code);
+            }
+            
+            document.getElementById('ticket-result').style.display = 'block';
+            document.getElementById('purchase-ticket-btn').style.display = 'none';
+        }
+
+        function purchaseAttraction() {
+            const adultCount = parseInt(document.getElementById('attraction-adult').value) || 0;
+            const childCount = parseInt(document.getElementById('attraction-child').value) || 0;
+            
+            if (adultCount === 0 && childCount === 0) return;
+            
+            const codesDiv = document.getElementById('attraction-codes');
+            codesDiv.innerHTML = '';
+            
+            for (let i = 0; i < adultCount; i++) {
+                const code = document.createElement('div');
+                code.className = 'auth-code';
+                code.textContent = generateAuthCode();
+                codesDiv.appendChild(code);
+            }
+            
+            for (let i = 0; i < childCount; i++) {
+                const code = document.createElement('div');
+                code.className = 'auth-code';
+                code.textContent = generateAuthCode();
+                codesDiv.appendChild(code);
+            }
+            
+            document.getElementById('attraction-result').style.display = 'block';
+            document.getElementById('purchase-attraction-btn').style.display = 'none';
+        }
+
+        function resetForm(type) {
+            if (type === 'ticket') {
+                document.getElementById('adult-ticket').value = 0;
+                document.getElementById('child-ticket').value = 0;
+                updateTotal();
+                document.getElementById('ticket-result').style.display = 'none';
+                document.getElementById('purchase-ticket-btn').style.display = 'block';
+            } else if (type === 'attraction') {
+                document.getElementById('attraction-adult').value = 0;
+                document.getElementById('attraction-child').value = 0;
+                updateAttractionTotal();
+                document.getElementById('attraction-result').style.display = 'none';
+                document.getElementById('purchase-attraction-btn').style.display = 'block';
+            }
+        }
+
+        // モーダル外クリックで閉じる
+        window.onclick = function(event) {
+            const ticketModal = document.getElementById('ticketModal');
+            const attractionModal = document.getElementById('attractionModal');
+            
+            if (event.target === ticketModal) {
+                ticketModal.style.display = 'none';
+            }
+            if (event.target === attractionModal) {
+                attractionModal.style.display = 'none';
+            }
+        }
     </script>
 </body>
 
